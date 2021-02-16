@@ -1,0 +1,59 @@
+
+/***************************相关结构体**********************/
+
+ typedef struct
+{
+ uint32_t OCMode; //PWM 模式
+ uint32_t Pulse; //捕获比较值
+ uint32_t OCPolarity; //极性
+ uint32_t OCNPolarity; 
+ uint32_t OCFastMode; //快速模式
+ uint32_t OCIdleState;
+ uint32_t OCNIdleState; 
+} TIM_OC_InitTypeDef;      
+
+
+
+/************************配置步骤***********************/
+
+1）开启 TIM1 和 GPIO 时钟，配置 PA8 选择复用功能输出(写在HAL_TIM_PWM_MspInit()函数中)。
+
+  __HAL_RCC_TIM1_CLK_ENABLE(); //  使能定时器
+  __HAL_RCC_GPIOA_CLK_ENABLE(); //  开启对应GPIO时钟
+
+ GPIO_InitTypeDef GPIO_Initure;  // GPIO结构体
+ GPIO_Initure.Pin=GPIO_PIN_8;  //PA8
+ GPIO_Initure.Mode=GPIO_MODE_AF_PP; //复用推挽输出
+ GPIO_Initure.Pull=GPIO_PULLUP;  //上拉
+ GPIO_Initure.Speed=GPIO_SPEED_FREQ_HIGH; //高速
+ HAL_GPIO_Init(GPIOA,&GPIO_Initure);
+
+
+2）初始化 TIMx,设置 TIMx 的 ARR 和 PSC 等参数。
+
+      HAL_TIM_PWM_Init(TIM_HandleTypeDef *htim);  // 初始化定时器 的 ARR 和 PSC 等参数
+
+
+
+3）设置 TIM1_CH1 的 PWM 模式，输出比较极性，比较值等参数
+
+TIM_OC_InitTypeDef TIM1_CH1Handler; //定时器 1 通道 1 句柄 
+
+TIM1_CH1Handler.OCMode=TIM_OCMODE_PWM1; //模式选择 PWM1
+
+TIM1_CH1Handler.Pulse=arr/2; //设置比较值,此值用来确定占空比,默认比较值为自动重装载值的一半,即占空比为 50%
+
+TIM1_CH1Handler.OCPolarity=TIM_OCPOLARITY_LOW; //输出比较极性为低
+
+ HAL_TIM_PWM_ConfigChannel(&TIM1_Handler,&TIM1_CH1Handler,TIM_CHANNEL_1);//配置 TIM1 通道 1
+
+
+
+4）使能 TIM1，使能 TIM1 的 CH1 输出
+
+   HAL_TIM_PWM_Start(TIM_HandleTypeDef *htim, uint32_t Channel);   // 使能 TIMx
+ 
+   TIM_CCxChannelCmd(TIM_TypeDef* TIMx, uint32_t Channel, uint32_t ChannelState); // 单独使能定时器的输出通道函数
+
+
+  

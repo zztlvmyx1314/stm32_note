@@ -1,0 +1,89 @@
+
+通用定时器:
+TIM2、TIM3、TIM4 和 TIM5 ;
+
+typedef struct
+{
+ TIM_TypeDef  *Instance;   //  寄存器基地址
+
+ TIM_Base_InitTypeDef   Init; 
+
+ HAL_TIM_ActiveChannel  Channel;  // 设置活跃通道
+
+ DMA_HandleTypeDef   *hdma[7];   // 设置定时器的 DMA 功能
+
+ HAL_LockTypeDef    Lock; 
+
+ __IO HAL_TIM_StateTypeDef   State; 
+
+}TIM_HandleTypeDef;   // 通用定时器句柄结构体
+
+
+
+/******************通用定时器配置步骤***********************/
+
+1): TIMx 时钟使能。
+    
+     __HAL_RCC_TIMx_CLK_ENABLE(); //使能 TIMx 时钟
+
+2）初始化定时器参数,设置自动重装值，分频系数，计数方式等。
+
+TIM_HandleTypeDef TIM3_Handler;  //定时器句柄
+
+TIM3_Handler.Instance=TIM3; //通用定时器 3
+
+TIM3_Handler.Init.Prescaler= 7199; //分频系数
+
+TIM3_Handler.Init.CounterMode=TIM_COUNTERMODE_UP; //向上计数器
+
+TIM3_Handler.Init.Period=4999; //自动装载值
+
+TIM3_Handler.Init.ClockDivision=TIM_CLOCKDIVISION_DIV1; //时钟分频因子
+
+HAL_TIM_Base_Init(&TIM3_Handler);   // 写入寄存器
+
+
+3）使能定时器更新中断，使能定时器。
+
+ HAL_TIM_Base_Start_IT(TIM_HandleTypeDef *htim);  //  使 能 定 时 器 更 新 中 断 和 使 能 定 时 器
+
+
+4）TIM3 中断优先级设置(写在HAL_TIM_Base_MspInit()函数中)
+
+  HAL_NVIC_SetPriority(TIM3_IRQn,1,3);    //设置中断优先级，抢占优先级 1，子优先级 3
+
+  HAL_NVIC_EnableIRQ(TIM3_IRQn); //开启 ITM3 中断
+
+
+5）编写中断服务函数
+
+ TIM3_IRQHandler();  // 重写TIM3的中断服务函数
+
+ HAL_TIM_IRQHandler(TIM_HandleTypeDef *htim);  // 中断服务函数中调用中断共用处理函数
+
+ HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);  // 定时器更新中断回调函数
+
+
+
+
+/**************************中断回调函数**********************/
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);//更新中断
+
+void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim);//输出比较
+
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim);//输入捕获
+
+void HAL_TIM_TriggerCallback(TIM_HandleTypeDef *htim);//触发中断
+
+
+
+/**************************单独使能/关闭定时器中断和使能/关闭定时器**********************/
+
+__HAL_TIM_ENABLE_IT(htim, TIM_IT_UPDATE);//使能句柄指定的定时器更新中断
+
+__HAL_TIM_DISABLE_IT (htim, TIM_IT_UPDATE);//关闭句柄指定的定时器更新中断
+
+ __HAL_TIM_ENABLE(htim);//使能句柄 htim 指定的定时器
+
+__HAL_TIM_DISABLE(htim);//关闭句柄 htim 指定的定时器
