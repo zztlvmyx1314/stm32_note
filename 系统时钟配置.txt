@@ -1,0 +1,107 @@
+
+/*******************相关结构体**********************/
+
+ RCC_OscInitTypeDef     // 振荡器(晶振)类型初始化结构体
+{
+ uint32_t OscillatorType=   // 振荡器类型选择
+  < RCC_OSCILLATORTYPE_NONE
+    RCC_OSCILLATORTYPE_HSE     // 外部高速时钟
+    RCC_OSCILLATORTYPE_HSI
+    RCC_OSCILLATORTYPE_LSE
+    RCC_OSCILLATORTYPE_LSI  >；
+
+ uint32_t HSEState=     // 外部时钟源的状态
+ < RCC_HSE_OFF  // 开
+   RCC_HSE_ON   // 关
+   RCC_HSE_BYPASS >
+
+
+ uint32_t HSEPredivValue=    // 外部时钟源分频系数
+< RCC_HSE_PREDIV_DIV1
+    RCC_HSE_PREDIV_DIV2  >
+
+ uint32_t LSEState
+ uint32_t HSIState
+
+ uint32_t HSICalibrationValue=RCC_HSICALIBRATION_DEFAULT  // 内部是时钟源校验值(使用默认值)
+
+ uint32_t LSIState
+
+ RCC_PLLInitTypeDef PLL  //  PLL倍频锁相环结构体配置
+
+
+
+} 
+
+
+ RCC_PLLInitTypeDef    // PLL倍频锁相环结构体
+{
+    uint32_t PLLState=  // PLL开启状态
+ <  RCC_PLL_NONE    // 不使用
+     RCC_PLL_OFF PLL   // 开启
+     RCC_PLL_ON PLL   // 不开启  
+   >
+
+     uint32_t PLLSource=   // PLL时钟来源
+<   RCC_PLLSOURCE_HSI_DIV2  // HSI 2 分频
+      RCC_PLLSOURCE_HSE        // HSE   
+      >
+ 
+      uint32_t PLLMUL=     // PLL倍频值(2~16)
+   <   RCC_PLL_MUL2       // PLL 2 倍频
+
+    >
+
+
+}
+
+
+
+ RCC_ClkInitTypeDef   // 系统时钟配置结构体
+{
+     uint32_t ClockType=  // 要配置的时钟(一般全选)
+  <  RCC_CLOCKTYPE_SYSCLK 
+       RCC_CLOCKTYPE_HCLK 
+       RCC_CLOCKTYPE_PCLK1 
+       RCC_CLOCKTYPE_PCLK2 
+   >
+
+ uint32_t SYSCLKSource=    // 系统时钟源的选择
+    < 
+        RCC_SYSCLKSOURCE_HSI   // 选择HSI
+        RCC_SYSCLKSOURCE_HSE 
+        RCC_SYSCLKSOURCE_PLLCLK  // 选择PLL锁相环
+     >
+
+ uint32_t AHBCLKDivider=    // AHB总线时钟分频
+   <
+     RCC_SYSCLK_DIV1  
+     RCC_SYSCLK_DIV2 
+     RCC_SYSCLK_DIV4  
+     RCC_SYSCLK_DIV8
+     RCC_SYSCLK_DIV16  // 16分频
+     RCC_SYSCLK_DIV64 
+     RCC_SYSCLK_DIV128  
+     RCC_SYSCLK_DIV256 
+     RCC_SYSCLK_DIV512
+    >
+ uint32_t APB1CLKDivider=   // APB1总线时钟分频
+  <
+    RCC_HCLK_DIV1 
+    RCC_HCLK_DIV2  
+    RCC_HCLK_DIV4 
+    RCC_HCLK_DIV8 
+    RCC_HCLK_DIV16
+   >
+
+
+ uint32_t APB2CLKDivider=   //  // APB2总线时钟分频(参数值同上APB1)
+
+}
+
+
+/***********************配置步骤*************？
+
+1.  定义结构体RCC_OscInitTypeDef
+2. 定义RCC_OscInitTypeDef内嵌套的 RCC_PLLInitTypeDef 结构体
+3. 定义结构体 RCC_ClkInitTypeDef 配置输出到总线的时钟
