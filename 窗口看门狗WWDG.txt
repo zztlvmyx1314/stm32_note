@@ -1,0 +1,46 @@
+
+/***********************配置步骤*********************/
+
+1）使能 WWDG 时钟（写在HAL_WWDG_MspInit（））
+
+
+__HAL_RCC_WWDG_CLK_ENABLE(); //使能窗口看门狗时钟
+
+
+2）设置窗口值,分频数和计数器初始值
+
+WWDG_HandleTypeDef   WWDG_Handler; //窗口看门狗句柄
+
+WWDG_Handler.Instance=WWDG; //窗口看门狗
+
+WWDG_Handler.Init.Prescaler=WWDG_PRESCALER_8;//设置分频系数为 8
+
+WWDG_Handler.Init.Window=0X5F; //设置窗口值 0X5F
+
+WWDG_Handler.Init.Counter=0x7F; //设置计数器值 0x7F
+
+WWDG_Handler.Init.EWIMode=WWDG_EWI_ENABLE;  // 使能唤醒中断
+
+HAL_WWDG_Init(&WWDG_Handler); //初始化 WWDG
+
+
+3）使能中断通道并配置优先级（如果开启了 WWDG 中断，写在HAL_WWDG_MspInit() ）
+
+HAL_NVIC_SetPriority(WWDG_IRQn,2,3); //抢占优先级 2，子优先级为 3
+
+HAL_NVIC_EnableIRQ(WWDG_IRQn); //使能窗口看门狗中断
+
+
+
+4）编写中断服务函数
+：
+void WWDG_IRQHandler(void);  // 中断服务函数，调用回调函数
+
+
+
+
+5)重写窗口看门狗唤醒中断处理回调函数 HAL_WWDG_WakeupCallback
+
+void HAL_WWDG_EarlyWakeupCallback (WWDG_HandleTypeDef* hwwdg);
+
+ HAL_WWDG_Refresh(WWDG_HandleTypeDef *hwwdg);  // 喂狗

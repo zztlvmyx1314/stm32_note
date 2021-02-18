@@ -1,0 +1,53 @@
+
+/**************************相关寄存器*************************/
+
+1.  IWDG_KR   // 寄存器(控制寄存器)
+
+2.  IWDG_ PR  // 寄存器各位(预分频寄存器)
+
+3. IWDG_RL    // 重装载寄存器
+
+
+/********************相关结构体*********************/
+
+typedef struct
+{
+
+ IWDG_TypeDef *Instance;
+ IWDG_InitTypeDef Init; 
+
+}IWDG_HandleTypeDef;  // 看门狗句柄结构体
+
+typedef struct
+{
+ uint32_t Prescaler;  // 预分频值
+
+ uint32_t Reload;     // 重装载值
+
+}IWDG_InitTypeDef;  // 初始化参数结构体
+
+
+/************************配置步骤***************************/
+
+1）取消寄存器写保护（向 IWDG_KR 写入 0X5555）
+
+    IWDG_HandleTypeDef  IWDG_Handler; //独立看门狗句柄
+
+    IWDG_Handler.Instance=IWDG; //独立看门狗
+
+    IWDG_Handler.Init.Prescaler=IWDG_PRESCALER_64; //设置 IWDG 分频系数
+
+    IWDG_Handler.Init.Reload=500; //重装载值
+
+    HAL_IWDG_Init(IWDG_HandleTypeDef *hiwdg);   // 初始化函数
+
+
+2）重载计数值喂狗（向 IWDG_KR 写入 0XAAAA）
+
+ HAL_IWDG_Refresh(IWDG_HandleTypeDef *hiwdg);  // 喂狗
+
+
+3) 启动看门狗(向 IWDG_KR 写入 0XCCCC)
+
+
+ __HAL_IWDG_START(hiwdg); 
