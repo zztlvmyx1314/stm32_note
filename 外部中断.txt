@@ -1,0 +1,77 @@
+
+STM32F103 的 19 个外部中断为：
+EXTI 线 0~15：对应外部 IO 口的输入中断。
+EXTI 线 16：连接到 PVD 输出。
+EXTI 线 17：连接到 RTC 闹钟事件。
+EXTI 线 18：连接到 USB 唤醒事件。
+EXTI 线 19：连接到以太网唤醒事件。
+
+
+
+/***********************配置步骤************************/
+
+1) 使能 IO 口时钟，初始化 IO 口为输入
+
+   __HAL_RCC_GPIOA_CLK_ENABLE();
+
+1) 设置 IO 口模式，触发条件，开启 SYSCFG 时钟，设置 IO 口与中断线的映射关系
+
+GPIO_InitTypeDef GPIO_Initure;
+
+GPIO_Initure.Pin=GPIO_PIN_0; //PA0
+
+GPIO_Initure.Mode=GPIO_MODE_IT_RISING; //外部中断，上升沿触发
+
+GPIO_Initure.Pull=GPIO_PULLDOWN; //默认下拉
+
+HAL_GPIO_Init(GPIOA,&GPIO_Initure);
+
+
+2) 配置中断优先级（NVIC），并使能中断
+
+ HAL_NVIC_SetPriority(EXTI0_IRQn,2,0); //抢占优先级为 2，子优先级为 0
+
+ HAL_NVIC_EnableIRQ(EXTI0_IRQn); //使能中断线 2
+
+
+
+3) 编写中断服务函数。
+
+void EXTI0_IRQHandler();
+void EXTI1_IRQHandler();
+void EXTI2_IRQHandler();
+void EXTI3_IRQHandler();
+void EXTI4_IRQHandler();
+void EXTI9_5_IRQHandler();
+void EXTI15_10_IRQHandler();
+
+
+
+5） 编写中断处理回调函数 HAL_GPIO_EXTI_Callback
+
+
+void HAL_GPIO_EXTI_IRQHandler(uint16_t GPIO_Pin)   //   中 断 通 用 入 口 函 数
+{
+
+ if(__HAL_GPIO_EXTI_GET_IT(GPIO_Pin) != 0x00u)
+ {
+ __HAL_GPIO_EXTI_CLEAR_IT(GPIO_Pin);   //  清除中断标志位
+
+ HAL_GPIO_EXTI_Callback(GPIO_Pin);       // 中断回调函数(所有外部中断公用)
+
+
+ } 
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
