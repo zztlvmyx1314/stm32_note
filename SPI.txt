@@ -1,0 +1,160 @@
+
+/****************************引脚对应关系***********************/ 
+
+PA5--->SPI_SCK
+
+PA7--->SPI_MOSI   // 主发送
+
+PA6---->SPI_MISO   // 主接收
+
+PA4---->CS
+
+
+/*****************************相关结构体******************************/
+
+typedef struct __SPI_HandleTypeDef
+{
+ SPI_TypeDef *Instance; //基地址
+
+ SPI_InitTypeDef Init; //初始化接哦固体
+
+ uint8_t *pTxBuffPtr; //发送缓存
+
+ uint16_t TxXferSize;  //发送数据大小
+
+ __IO uint16_t TxXferCount; //还剩余多少个数据要发送
+
+ uint8_t *pRxBuffPtr; //接收缓存
+
+ uint16_t RxXferSize; //接收数据大小
+
+ __IO uint16_t RxXferCount; //还剩余多少个数据要接收
+
+void (*RxISR)(struct __SPI_HandleTypeDef *hspi);
+
+void (*TxISR)(struct __SPI_HandleTypeDef *hspi);
+
+ DMA_HandleTypeDef *hdmatx; //DMA 发送句柄 
+
+ DMA_HandleTypeDef *hdmarx; //DMA 接收句柄
+
+ HAL_LockTypeDef Lock; 
+
+ __IO HAL_SPI_StateTypeDef State; 
+
+ __IO uint32_t ErrorCode;
+
+}SPI_HandleTypeDef;  // SPI句柄结构体
+
+
+
+typedef struct
+{
+ uint32_t Mode; // 模式：主（SPI_MODE_MASTER），从（SPI_MODE_SLAVE）
+
+ uint32_t Direction; //方式： 只接受模式，单线双向通信数据模式，全双工
+
+ uint32_t DataSize; //8 位还是 16 位帧格式选择项 
+
+ uint32_t CLKPolarity; //时钟极性 
+
+ uint32_t CLKPhase; //时钟相位 
+
+ uint32_t NSS; //SS 信号由硬件（NSS 管脚）还是软件控制 
+
+ uint32_t BaudRatePrescaler; //设置 SPI 波特率预分频值
+
+ uint32_t FirstBit; //起始位是 MSB 还是 LSB 
+
+ uint32_t TIMode; //帧格式 SPI motorola 模式还是 TI 模式 
+
+ uint32_t CRCCalculation; //硬件 CRC 是否使能
+
+ uint32_t CRCPolynomial; //CRC 多项式
+
+}SPI_InitTypeDef;  // 初始化结构体
+
+
+/***************************配置步骤************************/
+
+1）配置相关引脚的复用功能，使能 SPI1 时钟(写在 HAL_SPI_MspInit(）函数中)******************/
+
+__HAL_RCC_SPI1_CLK_ENABLE(); //使能 SPI1 时钟
+
+__HAL_RCC_GPIOA_CLK_ENABLE(); //使能 GPIOA 时钟
+
+GPIO_Initure.Pin=GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
+
+GPIO_Initure.Mode=GPIO_MODE_AF_PP; //复用推挽输出
+
+GPIO_Initure.Pull=GPIO_PULLUP; //上拉
+
+GPIO_Initure.Speed=GPIO_SPEED_FREQ_HIGH; //快速 
+
+HAL_GPIO_Init(GPIOA,&GPIO_Initure)
+
+
+
+2）设置 SPI1 工作模式************************************/
+
+
+SPI1_Handler.Instance= SPI1; // SPI1
+
+SPI1_Handler.Init.Mode=SPI_MODE_MASTER; //设置 SPI 工作模式，设置为主模式
+
+SPI1_Handler.Init.Direction=SPI_DIRECTION_2LINES; //设置 SPI 单向或者双向的数据模式:SPI 设置为双线模式
+
+SPI1_Handler.Init.DataSize=SPI_DATASIZE_8BIT; //设置 SPI 的数据大小:SPI 发送接收 8 位帧结构
+
+SPI1_Handler.Init.CLKPolarity=SPI_POLARITY_HIGH; //串行同步时钟的空闲状态为高电平
+
+SPI1_Handler.Init.CLKPhase=SPI_PHASE_2EDGE; //串行同步时钟的第二个跳变沿（上升或下降）数据被采样
+
+SPI1_Handler.Init.NSS=SPI_NSS_SOFT; //NSS 信号由硬件（NSS 管脚）还是软件（使用 SSI 位）管理:内部 NSS 信号有 SSI 位控制
+
+SPI1_Handler.Init.BaudRatePrescaler=SPI_BAUDRATEPRESCALER_256;//定义波特率预分频的值:波特率预分频值为 256
+
+SPI1_Handler.Init.FirstBit=SPI_FIRSTBIT_MSB;  //指定数据传输从 MSB 位还是 LSB 位开始:数据传输从 MSB 位开始
+
+SPI1_Handler.Init.TIMode=SPI_TIMODE_DISABLE;  //关闭 TI 模式
+
+SPI1_Handler.Init.CRCCalculation=SPI_CRCCALCULATION_DISABLE; //关闭硬件 CRC 校验
+
+SPI1_Handler.Init.CRCPolynomial=7; //CRC 值计算的多项式
+
+HAL_SPI_Init(&SPI1_Handler); //初始化
+
+
+
+3）使能 SPI1************************************/
+
+ __HAL_SPI_ENABLE(&SPI1_Handler);  // 使能SPI
+
+
+
+
+4）SPI 传输数据**************************************************/
+
+HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, uint8_t *pData,uint16_t Size, uint32_t Timeout);  // 发送数据
+
+HAL_SPI_Receive(SPI_HandleTypeDef *hspi, uint8_t *pData, uint16_t Size, uint32_t Timeout);  // 接收数据
+
+
+HAL_SPI_TransmitReceive(SPI_HandleTypeDef *hspi, uint8_t *pTxData,uint8_t *pRxData, uint16_t Size, uint32_t Timeout);
+// 发送接收同时进行
+
+
+
+5）设置 SPI 传输速度************************************/
+
+
+ SPI1_Handler.Instance->CR1&=0XFFC7; //位 3-5 清零，用来设置波特率
+
+ SPI1_Handler.Instance->CR1|=SPI_BaudRatePrescaler; //设置 SPI 速度
+
+
+
+
+
+
+‘
